@@ -31,7 +31,7 @@ def interpolate_asd(interpolation_frequencies,frequencies,asd):
 
 H0=2.2*10**(-18)
 start = time()
-RT_frequencies=np.linspace(10, 1500, 6000)
+RT_frequencies=np.linspace(10, 1500, 5960)
 aligo_design ="C:/Users/Thor De Rouck/Documents/0FysicaUAntwerpen/BachelorProef/aligo.txt"
 f_aligo_design, asd_aligo_design = np.transpose(np.loadtxt(aligo_design))
 RT_asd=interpolate_asd(RT_frequencies,f_aligo_design,asd_aligo_design)
