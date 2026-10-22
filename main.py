@@ -7,7 +7,7 @@ from classes import DetectorNetwork
 from time import time
 
 def interpolate_asd(interpolation_frequencies,frequencies,asd):
-    interpolated_psd = np.zeros(np.size(interpolation_frequencies))
+    interpolated_asd = np.zeros(np.size(interpolation_frequencies))
     reversed_frequencies=np.flip(frequencies)
     for i in range(np.size(interpolation_frequencies)):
         f_lower=frequencies[1]
@@ -26,8 +26,8 @@ def interpolate_asd(interpolation_frequencies,frequencies,asd):
                 break
         f_l_diff=interpolation_frequencies[i]-f_lower
         f_h_diff=f_higher-interpolation_frequencies[i]
-        interpolated_psd[i]=asd[index_lower]+f_h_diff*(asd[index_higher]-asd[index_lower])/(f_l_diff+f_h_diff)
-    return interpolated_psd
+        interpolated_asd[i]=asd[index_lower]+f_h_diff*(asd[index_higher]-asd[index_lower])/(f_l_diff+f_h_diff)
+    return interpolated_asd
 
 H0=2.2*10**(-18)
 start = time()
@@ -35,7 +35,7 @@ RT_frequencies=np.linspace(10, 1500, 5960)
 aligo_design ="C:/Users/Thor De Rouck/Documents/0FysicaUAntwerpen/BachelorProef/aligo.txt"
 f_aligo_design, asd_aligo_design = np.transpose(np.loadtxt(aligo_design))
 RT_asd=interpolate_asd(RT_frequencies,f_aligo_design,asd_aligo_design)
-RT_psd=(2 * np.pi ** 2 * RT_frequencies ** 3 * RT_asd **2) / (3 * H0 ** 2)
+Omega_RT= (2 * np.pi ** 2 * RT_frequencies ** 3 * RT_asd ** 2) / (3 * H0 ** 2)
 end = time()
 print(end-start, "s")
 
@@ -57,7 +57,7 @@ LIGO_Network=DetectorNetwork(LIGO_detectors,len(LIGO_detectors),RT_frequencies,n
 Omega_0=LIGO_Network.get_Omega_eff(0)
 Omega_1=LIGO_Network.get_Omega_eff(1)
 PI_curve,Omega_Bs=LIGO_Network.Power_Integration(betas)
-plt.loglog(RT_frequencies,RT_psd,color='black')
+plt.loglog(RT_frequencies, Omega_RT, color='black')
 plt.loglog(RT_frequencies,Omega_0,color='red')
 plt.loglog(RT_frequencies,Omega_1,color='green')
 for beta, Omega_B in zip(betas, Omega_Bs):

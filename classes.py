@@ -48,7 +48,7 @@ def _lal_to_east_azimuth(lal_azimuth_rad):
     return (2.5 * np.pi - lal_azimuth_rad) % (2 * np.pi)
 
 class Detector:
-    def __init__(self, x_ijk, arm1_ijk, arm2_ijk,psd):
+    def __init__(self, x_ijk, arm1_ijk, arm2_ijk, asd):
         """
         Parameters
         ----------
@@ -60,7 +60,7 @@ class Detector:
         self.x=x_ijk
         self.u = arm1_ijk
         self.v = arm2_ijk
-        self.psd=psd
+        self.asd=asd
         self._validate()
         self.D = self._detector_tensor()
     def _detector_tensor(self):
@@ -91,7 +91,7 @@ class LAL_Detector(Detector):
         elevation_si,
         arm_x_azimuth_rad,
         arm_y_azimuth_rad,
-        psd
+        asd
     ):
         """
         Parameters
@@ -111,7 +111,7 @@ class LAL_Detector(Detector):
             latitude_rad, longitude_rad, elevation_si, psi_u, psi_v
         )
 
-        super().__init__(x_ijk, u, v,psd)
+        super().__init__(x_ijk, u, v, asd)
 
 class DetectorPair:
     def __init__(self, detector1,detector2):
@@ -238,7 +238,7 @@ class DetectorNetwork:
     def set_S_eff(self):
         product=np.ones(self.nr_of_frequencies)
         for detector in self.detectors:
-            product=product * detector.psd**2
+            product=product * detector.asd**2
         self.S_eff=np.sqrt(product)/self.R_eff*5
     def set_Omega_eff(self):
         self.Omega_eff= (2 * np.pi ** 2 * self.frequencies ** 3 * self.S_eff) / (3 * H0 ** 2)
