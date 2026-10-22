@@ -31,7 +31,11 @@ def interpolate_asd(interpolation_frequencies,frequencies,asd):
 
 H0=2.2*10**(-18)
 start = time()
-RT_frequencies=np.linspace(10, 1500, 5960)
+starting_frequencie=10
+ending_frequencie=1500
+df=0.25
+df_inv=int(1/df)
+RT_frequencies=np.linspace(starting_frequencie, ending_frequencie, (ending_frequencie-starting_frequencie)*df_inv)
 aligo_design ="C:/Users/Thor De Rouck/Documents/0FysicaUAntwerpen/BachelorProef/aligo.txt"
 f_aligo_design, asd_aligo_design = np.transpose(np.loadtxt(aligo_design))
 RT_asd=interpolate_asd(RT_frequencies,f_aligo_design,asd_aligo_design)
@@ -49,8 +53,8 @@ v2=np.array([0.29774156894, -0.48791033647, -0.82054461286])
 x2=np.array([-74276.04238, -5496283.71971, 3224257.01744])
 LIGO2=Detector(x2,u2,v2,RT_asd)
 LIGO_detectors=[LIGO1,LIGO2]
-
-betas=np.linspace(-8, 8, 17)
+beta_max=8
+betas=np.linspace(-beta_max, beta_max, 2*beta_max+1)
 f_ref=100
 
 LIGO_Network=DetectorNetwork(LIGO_detectors,len(LIGO_detectors),RT_frequencies,np.size(RT_frequencies))
