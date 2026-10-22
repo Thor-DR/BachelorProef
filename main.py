@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from classes import Detector, LAL_Detector
-from classes import DetectorPair
+from classes  import DetectorPair
 from classes import DetectorPairVec
 from classes import DetectorNetwork
 from time import time
@@ -31,11 +31,11 @@ def interpolate_asd(interpolation_frequencies,frequencies,asd):
 
 H0=2.2*10**(-18)
 start = time()
-starting_frequencie=10
-ending_frequencie=1500
+starting_frequency=10
+ending_frequency=1500
 df=0.25
 df_inv=int(1/df)
-RT_frequencies=np.linspace(starting_frequencie, ending_frequencie, (ending_frequencie-starting_frequencie)*df_inv)
+RT_frequencies=np.linspace(starting_frequency, ending_frequency, (ending_frequency - starting_frequency) * df_inv)
 aligo_design ="C:/Users/Thor De Rouck/Documents/0FysicaUAntwerpen/BachelorProef/aligo.txt"
 f_aligo_design, asd_aligo_design = np.transpose(np.loadtxt(aligo_design))
 RT_asd=interpolate_asd(RT_frequencies,f_aligo_design,asd_aligo_design)
