@@ -48,7 +48,7 @@ def _lal_to_east_azimuth(lal_azimuth_rad):
     return (2.5 * np.pi - lal_azimuth_rad) % (2 * np.pi)
 
 class Detector:
-    def __init__(self, x_ijk, arm1_ijk, arm2_ijk, asd):
+    def __init__(self, x_ijk, arm1_ijk, arm2_ijk, psd):
         """
         Parameters
         ----------
@@ -60,7 +60,7 @@ class Detector:
         self.x=x_ijk
         self.u = arm1_ijk
         self.v = arm2_ijk
-        self.asd=asd
+        self.psd=psd
         self._validate()
         self.D = self._detector_tensor()
     def _detector_tensor(self):
@@ -91,7 +91,7 @@ class LAL_Detector(Detector):
         elevation_si,
         arm_x_azimuth_rad,
         arm_y_azimuth_rad,
-        asd
+        psd
     ):
         """
         Parameters
@@ -111,7 +111,7 @@ class LAL_Detector(Detector):
             latitude_rad, longitude_rad, elevation_si, psi_u, psi_v
         )
 
-        super().__init__(x_ijk, u, v, asd)
+        super().__init__(x_ijk, u, v, psd)
 
 class DetectorPair:
     def __init__(self, detector1,detector2):
@@ -191,11 +191,11 @@ class DetectorPairVec:
         alpha2 = alpha ** 2
         inv = 1.0 / (2 * alpha2)   # NOTE: singular at alpha=0, see caveat below
 
-        A = inv * (-5 * alpha2 * J0 + 10 * alpha * J1 + 5 * J2)
-        B = inv * ( 5 * alpha2 * J0 - 10 * alpha * J1 + 5 * J2)
-        C = inv * ( 5 * alpha2 * J0 - 10 * alpha * J1 - 25 * J2)
-        D = inv * (-5 * alpha2 * J0 + 20 * alpha * J1 - 25 * J2)
-        E = inv * ( 5 * alpha2 * J0 - 50 * alpha * J1 + 175 * J2)
+        A = inv * (-1 * alpha2 * J0 + 2 * alpha * J1 + 1 * J2)
+        B = inv * ( 1 * alpha2 * J0 - 2 * alpha * J1 + 1 * J2)
+        C = inv * ( 1 * alpha2 * J0 - 2 * alpha * J1 - 5 * J2)
+        D = inv * (-1 * alpha2 * J0 + 2 * alpha * J1 - 5 * J2)
+        E = inv * ( 1 * alpha2 * J0 - 10 * alpha * J1 + 35 * J2)
         return A, B, C, D, E
 
     def overlap_function_vec(self, freqs):
@@ -228,8 +228,8 @@ class DetectorNetwork:
             self.R_eff=np.sqrt(pair.overlap_function_vec(self.frequencies) ** 2)
         elif self.nr_of_detectors>2:
             product = np.ones(self.nr_of_frequencies)
-            for i in range(self.nr_of_detectors):
-                for j in range(i,self.nr_of_detectors):
+            for i in range(self.nr_of_detectors-1):
+                for j in range(i+1,self.nr_of_detectors):
                     pair=DetectorPairVec(self.detectors[i],self.detectors[j])
                     product=product*pair.overlap_function_vec(self.frequencies)**2
             self.R_eff=np.sqrt(product)
@@ -238,8 +238,8 @@ class DetectorNetwork:
     def set_S_eff(self):
         product=np.ones(self.nr_of_frequencies)
         for detector in self.detectors:
-            product=product * detector.asd**2
-        self.S_eff=np.sqrt(product)/self.R_eff*5
+            product=product * detector.psd
+        self.S_eff=np.sqrt(product)/self.R_eff
     def set_Omega_eff(self):
         self.Omega_eff= (2 * np.pi ** 2 * self.frequencies ** 3 * self.S_eff) / (3 * H0 ** 2)
     def get_Omega_eff(self,years,df=0.25):
