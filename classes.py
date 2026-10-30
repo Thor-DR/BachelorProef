@@ -216,30 +216,20 @@ class DetectorNetwork:
         self.nr_of_detectors=nr_of_detectors
         self.frequencies=frequencies
         self.nr_of_frequencies=nr_of_frequencies
-        self.R_eff=np.zeros(self.nr_of_frequencies)
         self.S_eff = np.zeros(self.nr_of_frequencies)
         self.Omega_eff = np.zeros(self.nr_of_frequencies)
-        self.set_R_eff()
         self.set_S_eff()
         self.set_Omega_eff()
-    def set_R_eff(self):
-        if self.nr_of_detectors==2:
-            pair=DetectorPairVec(self.detectors[0],self.detectors[1])
-            self.R_eff=np.sqrt(pair.overlap_function_vec(self.frequencies) ** 2)
-        elif self.nr_of_detectors>2:
-            product = np.ones(self.nr_of_frequencies)
-            for i in range(self.nr_of_detectors-1):
-                for j in range(i+1,self.nr_of_detectors):
-                    pair=DetectorPairVec(self.detectors[i],self.detectors[j])
-                    product=product*pair.overlap_function_vec(self.frequencies)**2
-            self.R_eff=np.sqrt(product)
-        else:
-            return
     def set_S_eff(self):
-        product=np.ones(self.nr_of_frequencies)
-        for detector in self.detectors:
-            product=product * detector.psd
-        self.S_eff=np.sqrt(product)/self.R_eff
+        S_effs =[]
+        for i in range(self.nr_of_detectors - 1):
+            for j in range(i + 1, self.nr_of_detectors):
+                pair = DetectorPairVec(self.detectors[i], self.detectors[j])
+                S_effs.append(pair.overlap_function_vec(self.frequencies)**2/(self.detectors[i].psd*self.detectors[j].psd))
+        summation = np.zeros(self.nr_of_frequencies)
+        for S in S_effs:
+            summation+=S
+        self.S_eff=summation**(-1/2)
     def set_Omega_eff(self):
         self.Omega_eff= (2 * np.pi ** 2 * self.frequencies ** 3 * self.S_eff) / (3 * H0 ** 2)
     def get_Omega_eff(self,years,df=0.25):
