@@ -97,8 +97,8 @@ ET_y_az68=math.radians(-292.5)
 ET_x_az90=math.radians(0)
 ET_y_az90=math.radians(270)
 ET_MR_elev=0
-ET_D_long=math.radians(51.1)
-ET_D_lat=math.radians(13.8)
+ET_D_long=math.radians(13.8)
+ET_D_lat=math.radians(51.1)
 ET_D_elev=200
 #Detectors
 ET_S_10=LAL_Detector(ET_S_long,ET_S_lat,ET_S_elev,ET_x_az,ET_y_az,RT_ET_10_psd)
@@ -161,7 +161,7 @@ ORF_S_MR_22=5*S_MR_pair_22.overlap_function_vec(RT_frequencies)
 #
 # ET_S_MR_10_45=DetectorNetwork([ET_S_10,ET_MR_10_45],2,RT_frequencies,nr)
 ET_S_MR_15_45=DetectorNetwork([ET_S_15,ET_MR_15_45],2,RT_frequencies,nr)
-S_MR_pair_45=DetectorPairVec(ET_S_15,ET_MR_15_22)
+S_MR_pair_45=DetectorPairVec(ET_S_15,ET_MR_15_45)
 ORF_S_MR_45=5*S_MR_pair_45.overlap_function_vec(RT_frequencies)
 # ET_S_MR_20_45=DetectorNetwork([ET_S_20,ET_MR_20_45],2,RT_frequencies,nr)
 #
@@ -492,13 +492,13 @@ ET3_xaz=math.radians(139.43)
 ET3_yaz=math.radians(79.43)
 ET3_elev=60
 
-ET1=LAL_Detector(ET1_long,ET1_lat,ET1_xaz,ET1_yaz,ET1_elev,RT_ET_10_psd)
-ET2=LAL_Detector(ET2_long,ET2_lat,ET2_xaz,ET2_yaz,ET2_elev,RT_ET_10_psd)
+ET1=LAL_Detector(ET1_long,ET1_lat,ET1_yaz,ET1_xaz,ET1_elev,RT_ET_10_psd)
+ET2=LAL_Detector(ET2_long,ET2_lat,ET2_yaz,ET2_xaz,ET2_elev,RT_ET_10_psd)
 ET3=LAL_Detector(ET3_long,ET3_lat,ET3_xaz,ET3_yaz,ET3_elev,RT_ET_10_psd)
 
 ET123=[ET1,ET2,ET3]
 ET_Triangle=DetectorNetwork(ET123,3,RT_frequencies,nr)
-Triangle_Pair=DetectorPairVec(ET1,ET2)
+Triangle_Pair=DetectorPairVec(ET1,ET1)
 ORF_Triangle=Triangle_Pair.overlap_function_vec(RT_frequencies)*5/(np.sin(np.pi/3)**2)
 PI_ET_Triangle,O_ET_Triangle=ET_Triangle.Power_Integration(betas)
 fig_3, (ax_ORF_3, ax_PI_3) = plt.subplots(1, 2, figsize=(11, 4.5))
