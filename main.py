@@ -8,28 +8,12 @@ from classes import DetectorPairVec
 from classes import DetectorNetwork
 from time import time
 
-def interpolate_asd(interpolation_frequencies,frequencies,asd):
-    interpolated_asd = np.zeros(np.size(interpolation_frequencies))
-    reversed_frequencies=np.flip(frequencies)
-    for i in range(np.size(interpolation_frequencies)):
-        f_lower=frequencies[1]
-        index_lower=1
-        for j in range(np.size(reversed_frequencies)):
-            if reversed_frequencies[j]<interpolation_frequencies[i]:
-                f_lower= reversed_frequencies[j]
-                index_lower=np.size(reversed_frequencies)+1-j
-                break
-        f_higher = frequencies[-1]
-        index_higher = -1
-        for k in range(np.size(frequencies)):
-            if frequencies[k] > interpolation_frequencies[i]:
-                f_higher = frequencies[k]
-                index_higher=k
-                break
-        f_l_diff=interpolation_frequencies[i]-f_lower
-        f_h_diff=f_higher-interpolation_frequencies[i]
-        interpolated_asd[i]=asd[index_lower]+f_h_diff*(asd[index_higher]-asd[index_lower])/(f_l_diff+f_h_diff)
-    return interpolated_asd
+def interpolate_asd(interpolation_frequencies, frequencies, asd):
+    return np.interp(
+        interpolation_frequencies,
+        frequencies,
+        asd
+    )
 
 def network_plot(network,freqs,det_respons, x_min=10,x_max=1500, fref=100):
     Omega_0 = network.get_Omega_eff(0)
@@ -89,11 +73,11 @@ ET_S_elev=300
 ET_MR_long=math.radians(5.921)
 ET_MR_lat=math.radians(50.72)
 ET_x_az22=math.radians(67.5)
-ET_y_az22=math.radians(-337.5)
+ET_y_az22=math.radians(337.5)
 ET_x_az45=math.radians(45)
-ET_y_az45=math.radians(-315)
+ET_y_az45=math.radians(315)
 ET_x_az68=math.radians(22.5)
-ET_y_az68=math.radians(-292.5)
+ET_y_az68=math.radians(292.5)
 ET_x_az90=math.radians(0)
 ET_y_az90=math.radians(270)
 ET_MR_elev=0
@@ -152,6 +136,10 @@ ET_S_MR_15_0=DetectorNetwork([ET_S_15,ET_MR_15_0],2,RT_frequencies,nr)
 ET_S_MR_20_0=DetectorNetwork([ET_S_20,ET_MR_20_0],2,RT_frequencies,nr)
 S_MR_pair_0=DetectorPairVec(ET_S_10,ET_MR_10_0)
 ORF_S_MR_0=5*S_MR_pair_0.overlap_function_vec(RT_frequencies)
+S_MR_pair_0=DetectorPairVec(ET_S_15,ET_MR_15_0)
+ORF_S_MR_0_15=5*S_MR_pair_0.overlap_function_vec(RT_frequencies)
+S_MR_pair_0=DetectorPairVec(ET_S_20,ET_MR_20_0)
+ORF_S_MR_0_20=5*S_MR_pair_0.overlap_function_vec(RT_frequencies)
 
 # ET_S_MR_10_22=DetectorNetwork([ET_S_10,ET_MR_10_22],2,RT_frequencies,nr)
 ET_S_MR_15_22=DetectorNetwork([ET_S_15,ET_MR_15_22],2,RT_frequencies,nr)
@@ -281,6 +269,9 @@ PI_MR_D_15_0,O_MR_D_15_0=ET_MR_D_15_0.Power_Integration(betas)
 # PI_MR_D_15_90,O_MR_D_15_90=ET_MR_D_15_90.Power_Integration(betas)
 # PI_MR_D_20_90,O_MR_D_20_90=ET_MR_D_20_90.Power_Integration(betas)
 
+plot_ly_limit=10e-13
+plot_uy_limit=10e-7
+
 fig, (ax_ORF, ax_PI) = plt.subplots(1, 2, figsize=(11, 4.5))
 
 ax_ORF.plot(RT_frequencies, ORF_S_MR_0,label="theta=0",color="black")
@@ -288,7 +279,8 @@ ax_ORF.plot(RT_frequencies, ORF_S_MR_22,label="theta=22.5",color="green")
 ax_ORF.plot(RT_frequencies, ORF_S_MR_45,label="theta=45",color="red")
 ax_ORF.set_xlabel("f (Hz)")
 ax_ORF.set_ylabel(r"$\gamma(f)$")
-ax_ORF.set_title("Linear frequency scale")
+ax_ORF.set_xscale("log")
+ax_ORF.set_title("ORF")
 ax_ORF.grid(alpha=0.3)
 ax_ORF.legend()
 
@@ -297,9 +289,10 @@ ax_PI.plot(RT_frequencies, PI_S_MR_15_22,label="theta=22.5",color="green")
 ax_PI.plot(RT_frequencies, PI_S_MR_15_45,label="theta=45",color="red")
 ax_PI.set_xscale("log")
 ax_PI.set_yscale("log")
+ax_PI.set_ylim(plot_ly_limit,plot_uy_limit)
 ax_PI.set_xlabel("f (Hz)")
 ax_PI.set_ylabel(r"$\Omega(f)$")
-ax_PI.set_title("Logarithmic frequency scale")
+ax_PI.set_title("Pi-curve")
 ax_PI.grid(alpha=0.3, which="both")
 ax_PI.legend()
 
@@ -314,7 +307,8 @@ ax_ORF_1.plot(RT_frequencies, ORF_S_D_0,label="S_D",color="green")
 ax_ORF_1.plot(RT_frequencies, ORF_MR_D_0,label="MR_D",color="red")
 ax_ORF_1.set_xlabel("f (Hz)")
 ax_ORF_1.set_ylabel(r"$\gamma(f)$")
-ax_ORF_1.set_title("Linear frequency scale")
+ax_ORF_1.set_xscale("log")
+ax_ORF_1.set_title("ORF")
 ax_ORF_1.grid(alpha=0.3)
 ax_ORF_1.legend()
 
@@ -325,7 +319,8 @@ ax_PI_1.set_xscale("log")
 ax_PI_1.set_yscale("log")
 ax_PI_1.set_xlabel("f (Hz)")
 ax_PI_1.set_ylabel(r"$\Omega(f)$")
-ax_PI_1.set_title("Logarithmic frequency scale")
+ax_PI_1.set_ylim(plot_ly_limit,plot_uy_limit)
+ax_PI_1.set_title("Pi-curve")
 ax_PI_1.grid(alpha=0.3, which="both")
 ax_PI_1.legend()
 
@@ -336,11 +331,12 @@ plt.show()
 fig_2, (ax_ORF_2, ax_PI_2) = plt.subplots(1, 2, figsize=(11, 4.5))
 
 ax_ORF_2.plot(RT_frequencies, ORF_S_MR_0,label="10km",color="black")
-ax_ORF_2.plot(RT_frequencies, ORF_S_MR_0,label="15km",color="green")
-ax_ORF_2.plot(RT_frequencies, ORF_S_MR_0,label="20km",color="red")
+ax_ORF_2.plot(RT_frequencies, ORF_S_MR_0_15,label="15km",color="green")
+ax_ORF_2.plot(RT_frequencies, ORF_S_MR_0_20,label="20km",color="red")
 ax_ORF_2.set_xlabel("f (Hz)")
 ax_ORF_2.set_ylabel(r"$\gamma(f)$")
-ax_ORF_2.set_title("Linear frequency scale")
+ax_ORF_2.set_xscale("log")
+ax_ORF_2.set_title("ORF")
 ax_ORF_2.grid(alpha=0.3)
 ax_ORF_2.legend()
 
@@ -349,9 +345,10 @@ ax_PI_2.plot(RT_frequencies, PI_S_MR_15_0,label="15km",color="green")
 ax_PI_2.plot(RT_frequencies, PI_S_MR_20_0,label="20km",color="red")
 ax_PI_2.set_xscale("log")
 ax_PI_2.set_yscale("log")
+ax_PI_2.set_ylim(plot_ly_limit,plot_uy_limit)
 ax_PI_2.set_xlabel("f (Hz)")
 ax_PI_2.set_ylabel(r"$\Omega(f)$")
-ax_PI_2.set_title("Logarithmic frequency scale")
+ax_PI_2.set_title("Pi-curve")
 ax_PI_2.grid(alpha=0.3, which="both")
 ax_PI_2.legend()
 
@@ -492,13 +489,13 @@ ET3_xaz=math.radians(139.43)
 ET3_yaz=math.radians(79.43)
 ET3_elev=60
 
-ET1=LAL_Detector(ET1_long,ET1_lat,ET1_yaz,ET1_xaz,ET1_elev,RT_ET_10_psd)
-ET2=LAL_Detector(ET2_long,ET2_lat,ET2_yaz,ET2_xaz,ET2_elev,RT_ET_10_psd)
-ET3=LAL_Detector(ET3_long,ET3_lat,ET3_xaz,ET3_yaz,ET3_elev,RT_ET_10_psd)
+ET1=LAL_Detector(ET1_long,ET1_lat,ET1_elev,ET1_yaz,ET1_xaz,RT_ET_10_psd)
+ET2=LAL_Detector(ET2_long,ET2_lat,ET2_elev,ET2_yaz,ET2_xaz,RT_ET_10_psd)
+ET3=LAL_Detector(ET3_long,ET3_lat,ET3_elev,ET3_yaz,ET3_xaz,RT_ET_10_psd)
 
 ET123=[ET1,ET2,ET3]
 ET_Triangle=DetectorNetwork(ET123,3,RT_frequencies,nr)
-Triangle_Pair=DetectorPairVec(ET1,ET1)
+Triangle_Pair=DetectorPairVec(ET1,ET2)
 ORF_Triangle=Triangle_Pair.overlap_function_vec(RT_frequencies)*5/(np.sin(np.pi/3)**2)
 PI_ET_Triangle,O_ET_Triangle=ET_Triangle.Power_Integration(betas)
 fig_3, (ax_ORF_3, ax_PI_3) = plt.subplots(1, 2, figsize=(11, 4.5))
@@ -507,7 +504,8 @@ ax_ORF_3.plot(RT_frequencies, ORF_Triangle,label="Triangle",color="black")
 ax_ORF_3.plot(RT_frequencies, ORF_S_MR_0,label="L-config",color="green")
 ax_ORF_3.set_xlabel("f (Hz)")
 ax_ORF_3.set_ylabel(r"$\gamma(f)$")
-ax_ORF_3.set_title("Linear frequency scale")
+ax_ORF_3.set_xscale("log")
+ax_ORF_3.set_title("ORF")
 ax_ORF_3.grid(alpha=0.3)
 ax_ORF_3.legend()
 
@@ -518,7 +516,8 @@ ax_PI_3.set_xscale("log")
 ax_PI_3.set_yscale("log")
 ax_PI_3.set_xlabel("f (Hz)")
 ax_PI_3.set_ylabel(r"$\Omega(f)$")
-ax_PI_3.set_title("Logarithmic frequency scale")
+ax_PI_3.set_ylim(plot_ly_limit,plot_uy_limit)
+ax_PI_3.set_title("PI-curve")
 ax_PI_3.grid(alpha=0.3, which="both")
 ax_PI_3.legend()
 
@@ -548,7 +547,7 @@ plt.show()
 # elev=142.554
 # x_az=5.65487724844
 # y_az=4.08408092164
-# LigoLAL=LAL_Detector(long,lat,elev,x_az,y_az)
+# LigoLAL=LAL_Detector(long,lat,elev,x_az,y_az,RT_ET_10_psd)
 # print(LigoLAL.x)
 # print(LigoLAL.u)
 # print(LigoLAL.v)

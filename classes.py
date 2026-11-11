@@ -168,7 +168,10 @@ class DetectorPairVec:
         self.detector2 = detector2
         self.deltaX = self.detector1.x - self.detector2.x
         self.s = np.linalg.norm(self.deltaX)
-        self.s_hat = self.deltaX / self.s
+        if self.s==0:
+            self.s_hat=np.zeros_like(self.deltaX)
+        else:
+            self.s_hat = self.deltaX / self.s
 
         # --- geometry-only constants, computed ONCE, independent of frequency ---
         self.Tr1 = np.trace(self.detector1.D)
@@ -184,19 +187,29 @@ class DetectorPairVec:
 
     def get_ABCDE_vec(self, alpha):
         # scipy's spherical_jn is elementwise-vectorized over z already
-        J0 = spherical_jn(0, alpha)
-        J1 = spherical_jn(1, alpha)
-        J2 = spherical_jn(2, alpha)
+        _LIMITS = (-2 / 15, 1 / 5, 0.0, 0.0, 0.0)
+        tol=0.001
+        alpha = np.asarray(alpha, dtype=float)
+        small = np.abs(alpha) < tol  # use `alpha == 0` for exact zeros only
+        a = np.where(small, 1.0, alpha)  # dummy value so no division by zero
 
-        alpha2 = alpha ** 2
-        inv = 1.0 / (2 * alpha2)   # NOTE: singular at alpha=0, see caveat below
+        J0 = spherical_jn(0, a)
+        J1 = spherical_jn(1, a)
+        J2 = spherical_jn(2, a)
 
-        A = inv * (-1 * alpha2 * J0 + 2 * alpha * J1 + 1 * J2)
-        B = inv * ( 1 * alpha2 * J0 - 2 * alpha * J1 + 1 * J2)
-        C = inv * ( 1 * alpha2 * J0 - 2 * alpha * J1 - 5 * J2)
-        D = inv * (-1 * alpha2 * J0 + 2 * alpha * J1 - 5 * J2)
-        E = inv * ( 1 * alpha2 * J0 - 10 * alpha * J1 + 35 * J2)
-        return A, B, C, D, E
+        a2 = a ** 2
+        inv = 1.0 / (2 * a2)
+
+        A = inv * (-1 * a2 * J0 + 2 * a * J1 + 1 * J2)
+        B = inv * (1 * a2 * J0 - 2 * a * J1 + 1 * J2)
+        C = inv * (1 * a2 * J0 - 2 * a * J1 - 5 * J2)
+        D = inv * (-1 * a2 * J0 + 4 * a * J1 - 5 * J2)
+        E = inv * (1 * a2 * J0 - 10 * a * J1 + 35 * J2)
+
+        out = []
+        for arr, lim in zip((A, B, C, D, E), _LIMITS):
+            out.append(np.where(small, lim, arr))
+        return tuple(out)
 
     def overlap_function_vec(self, freqs):
         alpha = self.calculate_alpha_vec(freqs)
