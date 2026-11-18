@@ -6,11 +6,12 @@ from classes import Detector
 from classes import DetectorPairVec
 from time import time
 from main import interpolate_asd
+#hoimport healpy as hp
 
-theta = np.radians(np.linspace(0, 180, 181))[None, :]   # (1, 181)
-phi   = np.radians(np.linspace(0, 359, 360))[:, None]   # (360, 1)
+theta = np.radians(np.linspace(-90, 90, 500))[None, :]   # (1, 181)
+phi   = np.radians(np.linspace(-180, 180, 500))[:, None]   # (360, 1)
 
-ones = np.ones((360, 181))
+ones = np.ones((500, 500))
 
 class Vector3:
     def __init__(self, x, y, z):
@@ -26,7 +27,7 @@ l = Vector3(np.cos(theta)*np.cos(phi),
 
 m = Vector3(-np.sin(phi)*ones,
             np.cos(phi)*ones,
-            np.zeros((360, 181)))
+            np.zeros((500, 500)))
 
 # stack components: shape (360, 181, 3)
 l_stack = np.stack([l.x, l.y, l.z], axis=-1)
@@ -86,13 +87,29 @@ R_strain_2 = np.sqrt(R_strain_plus ** 2 + R_strain_cross ** 2)
 # Source - https://stackoverflow.com/a/46069458
 # Posted by ImportanceOfBeingErnest
 # Retrieved 2026-11-18, License - CC BY-SA 3.0
+N=500
+lon = np.linspace(-np.pi, np.pi,500)
+lat = np.linspace(-np.pi/2, np.pi/2,500)
+lon= np.tile(lon, N)
+lat =np.repeat(lat, N)
+print(lon[1:10])
+print(lat[1:10])
 
-lon = np.linspace(-np.pi, np.pi,360)
-lat = np.linspace(-np.pi/2., np.pi/2.,181)
-Lon,Lat = np.meshgrid(lon,lat)
-
-fig = plt.figure()
+fig = plt.figure(figsize=(12, 6))
 ax = fig.add_subplot(111, projection='mollweide')
-im = ax.pcolormesh(Lon,Lat,R_strain_plus)
+
+sc = ax.scatter(
+    lon,
+    lat,
+    c=np.real(R_strain_plus),
+    cmap='viridis',
+    s=10
+)
+ax.grid(True)
+plt.colorbar(sc, label='Value')
+
+ax.set_title('Mollweide Projection-R_plus')
+
+plt.show()
 
 plt.show()
