@@ -6,7 +6,8 @@ from classes import Detector
 from classes import DetectorPairVec
 from time import time
 from main import interpolate_asd
-#hoimport healpy as hp
+#import healpy as hp
+#from mpl_toolkits.basemap import Basemap
 
 theta = np.radians(np.linspace(-90, 90, 500))[None, :]   # (1, 181)
 phi   = np.radians(np.linspace(-180, 180, 500))[:, None]   # (360, 1)
@@ -81,7 +82,6 @@ R_cross = np.einsum('...ab,...ab->...', R_ab, e_cross)
 # Strain response, Eq. (5.31): divide by 2L/c
 R_strain_plus = R_plus / (2*L_detector/c)
 R_strain_cross = R_cross / (2*L_detector/c)
-R_strain_1 = R_ab / (2*L_detector/c)
 R_strain_2 = np.sqrt(R_strain_plus ** 2 + R_strain_cross ** 2)
 
 # Source - https://stackoverflow.com/a/46069458
@@ -90,26 +90,73 @@ R_strain_2 = np.sqrt(R_strain_plus ** 2 + R_strain_cross ** 2)
 N=500
 lon = np.linspace(-np.pi, np.pi,500)
 lat = np.linspace(-np.pi/2, np.pi/2,500)
-lon= np.tile(lon, N)
-lat =np.repeat(lat, N)
-print(lon[1:10])
-print(lat[1:10])
+lon= np.repeat(lon, N)
+lat =np.tile(lat, N)
 
-fig = plt.figure(figsize=(12, 6))
-ax = fig.add_subplot(111, projection='mollweide')
-
-sc = ax.scatter(
+fig, (ax_Plus, ax_Cross) = plt.subplots(
+    nrows=1,
+    ncols=2,
+    figsize=(14, 6),
+    subplot_kw={'projection': 'mollweide'}
+)
+# m = Basemap(projection='moll',lon_0=0,resolution='c')
+# m.drawcoastlines()
+sc1 = ax_Plus.scatter(
     lon,
     lat,
     c=np.real(R_strain_plus),
-    cmap='viridis',
+    cmap='turbo',
     s=10
 )
-ax.grid(True)
-plt.colorbar(sc, label='Value')
 
-ax.set_title('Mollweide Projection-R_plus')
+ax_Plus.grid(True)
+ax_Plus.set_title('R_plus')
+
+sc2 = ax_Cross.scatter(
+    lon,
+    lat,
+    c=np.real(R_cross),
+    cmap='turbo',
+    s=10
+)
+
+ax_Cross.grid(True)
+ax_Cross.set_title('R_Cross')
+
+fig.colorbar(
+    sc1,
+    ax=[ax_Plus, ax_Cross],
+    label='Real strain',
+    orientation='vertical',
+    shrink=0.8
+)
 
 plt.show()
+
+fig2, (ax_2) = plt.subplots(
+    nrows=1,
+    ncols=1,
+    figsize=(14, 6),
+    subplot_kw={'projection': 'mollweide'}
+)
+
+sc3 = ax_2.scatter(
+    lon,
+    lat,
+    c=np.real(R_strain_2),
+    cmap='turbo',
+    s=10
+)
+
+ax_2.grid(True)
+ax_2.set_title('R_Total')
+
+fig2.colorbar(
+    sc3,
+    ax=[ax_2],
+    label='Real strain',
+    orientation='vertical',
+    shrink=0.8
+)
 
 plt.show()
